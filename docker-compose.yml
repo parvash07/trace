@@ -1,0 +1,39 @@
+services:
+  postgres:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: errorexplainer
+      POSTGRES_USER: errorexplainer
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-errorexplainer}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U errorexplainer -d errorexplainer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: "jdbc:postgresql://postgres:5432/errorexplainer?user=errorexplainer&password=${POSTGRES_PASSWORD:-errorexplainer}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

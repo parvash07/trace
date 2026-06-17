@@ -1,0 +1,7 @@
+backend/.env
+frontend/.env
+node_modules/
+dist/
+target/
+*.jar
+.DS_Store
